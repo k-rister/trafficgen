@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-from trex_tg_lib import *
+from collections import deque
 from tg_lib import *
 import sys, getopt
 import argparse
@@ -12,7 +12,6 @@ import time
 import json
 import string
 import threading
-import select
 import signal
 import copy
 import random
@@ -1747,8 +1746,6 @@ def main():
     trial_results = { 'trials': [],
                       'log':    [] }
 
-    process_options()
-
     bs_logger_exit = threading.Event()
     bs_logger_thread = threading.Thread(target = bs_logger_worker, args = (trial_results['log'], bs_logger_exit))
     bs_logger_thread.start()
@@ -2375,5 +2372,15 @@ def main():
               bs_logger_cleanup(bs_logger_exit, bs_logger_thread)
 
 if __name__ == "__main__":
-    exit(main())
+    process_options()
 
+    # only import the trex library if a trex traffic generator is
+    # being used.  imports must be done at the module level which is
+    # why it is done here instead of in main()
+    if t_global.args.traffic_generator == 'trex-txrx' or t_global.args.traffic_generator == 'trex-txrx-profile':
+         from trex_tg_lib import *
+
+    # select must be imported after trex_tg_lib (if it is imported)
+    import select
+
+    exit(main())
